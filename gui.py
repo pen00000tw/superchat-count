@@ -36,7 +36,7 @@ class thisWindow:
         self.win.mainloop()
     def countSC(self):
         url = self.url.get()
-        chat = ChatDownloader().get_chat(url,message_groups=['messages','superchat'])
+        chat = ChatDownloader().get_chat(url,message_groups=['superchat'])
         result = dict()
         count = dict()
         result1 = dict()
