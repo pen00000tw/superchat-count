@@ -28,12 +28,11 @@ class thisWindow:
 
         self.text = Text(self.win,height = 30, width = 95)
         self.text.place(x=60,y=100)
-
         self.button = Button(self.frame, text="計算",
                              font=('微軟正黑體', 15),
                              bg='gray', fg='white',
                              command=self.countSC)
-        self.button.place(x=660, y=25)
+        self.button.place(x=660, y=37)
         self.win.mainloop()
     def countSC(self):
         url = self.url.get()
@@ -55,29 +54,43 @@ class thisWindow:
                 else:
                     result[message['money']['currency']] = message['money']['amount']
                     count[message['money']['currency']] = 1
-        #換算台幣
+        #換算台幣and整理資料到final
         r=requests.get('https://tw.rter.info/capi.php')
         currency=r.json()
         usd_to_twd = currency['USDTWD']['Exrate']
         for cur in result.items():
             tmp = 'USD' + cur[0]
-            tmp = currency[tmp]['Exrate']
             result1['before'] = round(result[cur[0]],2)
-            result1['after'] = round(result[cur[0]] / tmp * usd_to_twd,2)
+            if tmp in currency:
+                tmp = currency[tmp]['Exrate']
+                result1['after'] = round(result[cur[0]] / tmp * usd_to_twd,2)
+            else:
+                if cur[0] == '₱':                   #菲律賓幣例外處理
+                    tmp = 'USDPHP'
+                    tmp = currency[tmp]['Exrate']
+                    result1['after'] = round(result[cur[0]] / tmp * usd_to_twd,2)
+                else:
+                    result1['after'] = 0     #無法辨識幣別
+            result1['count'] = count[cur[0]]
             final[cur[0]] = result1.copy()
         for i in final.items():
             total = total + i[1]['after']
+        #排序
+        final = sorted(final.items(),key = lambda final:final[1]['after'], reverse=True)
         #印出結果
         self.text.insert("insert","---------------------------\n")
-        self.text.insert("insert","幣值".ljust(8) + "金額".ljust(13)+ "換算台幣".ljust(11)+"百分比\n")
-        for i in final.items():
+        self.text.insert("insert","幣別".ljust(8) + "金額".ljust(13)+ "換算台幣".ljust(11)+"筆數".ljust(13) +"百分比\n")
+        for i in final:
             self.text.insert("insert",str(i[0]).ljust(10))
             self.text.insert("insert",str(i[1]['before']).ljust(15))
             self.text.insert("insert",str(i[1]['after']).ljust(15))
+            self.text.insert("insert",str(i[1]['count']).ljust(15))
             self.text.insert("insert",str(round(i[1]['after'] / total * 100,2)) + "%\n")
         self.text.insert("insert","---------------------------\n")
-        self.text.insert("insert","總計 : NT$ " + str(total))
+        self.text.insert("insert","總計 : NT$ " + str(round(total,2)))
+        self.text.see(END)
         self.win.update()
+        self.win.mainloop()
 if __name__ == "__main__":
     x = thisWindow()
     x.add_frame()
