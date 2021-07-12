@@ -55,20 +55,15 @@ class thisWindow:
                     result[message['money']['currency']] = message['money']['amount']
                     count[message['money']['currency']] = 1
         #換算台幣and整理資料到final
-        r=requests.get('https://tw.rter.info/capi.php')
+        r=requests.get('https://api.exchangerate-api.com/v4/latest/TWD')
         currency=r.json()
-        usd_to_twd = currency['USDTWD']['Exrate']
         for cur in result.items():
-            tmp = 'USD' + cur[0]
             result1['before'] = round(result[cur[0]],2)
-            if tmp in currency:
-                tmp = currency[tmp]['Exrate']
-                result1['after'] = round(result[cur[0]] / tmp * usd_to_twd,2)
+            if cur[0] in currency['rates']:
+                result1['after'] = round(result[cur[0]] / currency['rates'][cur[0]],2)
             else:
                 if cur[0] == '₱':                   #菲律賓幣例外處理
-                    tmp = 'USDPHP'
-                    tmp = currency[tmp]['Exrate']
-                    result1['after'] = round(result[cur[0]] / tmp * usd_to_twd,2)
+                    result1['after'] = round(result[cur[0]] / currency['rates']['PHP'],2)
                 else:
                     result1['after'] = 0     #無法辨識幣別
             result1['count'] = count[cur[0]]
