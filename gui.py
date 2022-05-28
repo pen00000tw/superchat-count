@@ -1,7 +1,7 @@
 from tkinter import *
 from chat_downloader import ChatDownloader
 import requests
-
+import threading
 class thisWindow:
     def __init__(self):
         self.win = Tk()
@@ -31,9 +31,14 @@ class thisWindow:
         self.button = Button(self.frame, text="計算",
                              font=('微軟正黑體', 15),
                              bg='gray', fg='white',
-                             command=self.countSC)
+                             command=self.startingthread)
         self.button.place(x=660, y=37)
         self.win.mainloop()
+    def startingthread(self):
+        self.button['state'] = DISABLED
+        self.button['text'] = "計算中"
+        self.thread = threading.Thread(target = self.countSC)
+        self.thread.start()
     def countSC(self):
         url = self.url.get()
         chat = ChatDownloader().get_chat(url,message_groups=['superchat'])
@@ -47,7 +52,7 @@ class thisWindow:
             if 'money' in message:
                 self.text.insert("insert",chat.format(message) + "\n")
                 self.text.see(END)
-                self.win.update()
+                #self.win.update()
                 if message['money']['currency'] in result:
                     result[message['money']['currency']] = result[message['money']['currency']] + message['money']['amount']
                     count[message['money']['currency']] = count[message['money']['currency']] + 1
@@ -84,8 +89,10 @@ class thisWindow:
         self.text.insert("insert","---------------------------\n")
         self.text.insert("insert","總計 : NT$ " + str(round(total,2)))
         self.text.see(END)
-        self.win.update()
-        self.win.mainloop()
+        self.button['state'] = NORMAL
+        self.button['text'] = "計算"
+        #self.win.update()
+        #self.win.mainloop()
 if __name__ == "__main__":
     x = thisWindow()
     x.add_frame()
